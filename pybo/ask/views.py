@@ -32,7 +32,18 @@ def questCreate(request):
 def answerCreate(request, quest_id):
     question_id = quest_id
     question = get_object_or_404(Question, pk=question_id)
-    content = request.POST['answer_content']
-    answer = Answer(question=question, content=content)
-    answer.save()
-    return redirect('ask:questDetail',quest_id=question_id)
+    if request.method == "POST":
+        form = AnswerForm(request.POST)
+        if form.is_valid():
+            answer = form.save(commit=False)
+            answer.create_date = timezone.now()
+            answer.question = question
+            answer.save()
+            return redirect('ask:questDetail', question_id=question_id)
+    else:
+        form = AnswerForm()
+    context = {'question': question, 'form': form}
+    # content = request.POST['answer_content']
+    # answer = Answer(question=question, content=content)
+    # answer.save()
+    return render(request, 'ask/question_detail.html', context)
